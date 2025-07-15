@@ -1,0 +1,94 @@
+---
+title: "Submission 1_PBX"
+output:
+  pdf_document: default
+  html_document: default
+date: "2025-07-13"
+---
+Install packages & read data & local setting
+```{r}
+library(tidyverse)
+#set path
+setwd('/Users/stanpawn/Desktop/Data science 101/Submission 1')
+#read data
+metadata <- read.csv("QBS103_GSE157103_series_matrix-1.csv")
+gene_exp_raw <- read.csv("QBS103_GSE157103_genes.csv")
+#check data
+glimpse(metadata)
+glimpse(gene_exp_raw)
+
+```
+Work with the gene expression data
+```{r}
+#working with rows & columns
+gene_exp_t <- gene_exp_raw %>%
+  column_to_rownames(var = "X") %>% #change the 1st columnname to rowname
+  t() %>% #transpose the data frame
+  as.data.frame()
+
+gene_exp_t <- gene_exp_t %>%
+  rownames_to_column(var="participant_id")
+
+glimpse(gene_exp_t)
+
+#combine gene expression & metadata
+#common samples ID
+common_ids <- intersect(metadata$participant_id, gene_exp_t$participant_id)
+#filter data using these IDs
+metadata_clean <- metadata %>% filter(participant_id %in% common_ids)
+gene_expr_clean <- gene_exp_t %>% filter(participant_id %in% common_ids)
+
+full_data <- left_join(metadata, gene_exp_t, by = "participant_id")
+glimpse(full_data)
+```
+Choose variables
+```{r}
+#check number of rows before start
+nrow(full_data) == nrow(metadata)
+
+#check variables
+names(full_data)
+'AAK1' %in% colnames(full_data)
+summary(full_data$AAK1)
+# change ferritin from char to num
+full_data <- full_data %>%
+  mutate(ferritin = as.numeric(`ferritin.ng.ml.`))
+
+summary(full_data$ferritin)
+summary(full_data$AAK1)
+summary(full_data$ferritin.ng.ml.)
+
+
+#check distribution of categorical covarities
+table(full_data$sex, useNA = "always")
+table(full_data$icu_status, useNA = "always")
+```
+Graphs
+```{r}
+#Histogram of AKK1 expression
+ggplot(full_data, aes(x=AAK1))+
+  geom_histogram(binwidth = 0.5, fill = 'steelblue', color = 'white', na.rm = TRUE) +
+  labs(
+    title = "Histogram of AAK1 Gene Expression",
+    x = "AAK1 Expression Level",
+    y = "Number of Samples"
+  ) +
+  theme_minimal()
+
+#Scattor plots of AKK1 and Ferritin
+ggplot(full_data, aes(x=ferritin, y=AAK1)) +
+  geom_point(color = "darkgreen", alpha = 0.7) +
+  labs(
+    title = "Scatterplot: AAK1 Expression vs. Ferritin Level",
+    x = "Ferritin (ng/ml)",
+    y = "AAK1 expression"
+  ) +
+  theme_minimal()
+#Boxplot of AAK1 by Sex and ICU status
+ggplot(full_data, aes(x = sex, y = AAK1, fill = icu_status)) +
+  geom_boxplot() +
+  labs(title = "AAK1 Expression by Sex and ICU Status",
+       x = "Sex",
+       y = "AAK1 Expression") +
+  theme_minimal()
+```

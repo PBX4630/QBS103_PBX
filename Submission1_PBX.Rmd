@@ -76,8 +76,8 @@ ggplot(full_data, aes(x=AAK1))+
   theme_minimal()
 
 #Scattor plots of AKK1 and Ferritin
-ggplot(full_data, aes(x=ferritin, y=AAK1)) +
-  geom_point(color = "darkgreen", alpha = 0.7) +
+ggplot(full_data, aes(x=ferritin, y=AAK1, color=icu_status)) +
+  geom_point(alpha = 0.7) +
   labs(
     title = "Scatterplot: AAK1 Expression vs. Ferritin Level",
     x = "Ferritin (ng/ml)",

@@ -92,3 +92,61 @@ ggplot(full_data, aes(x = sex, y = AAK1, fill = icu_status)) +
        y = "AAK1 Expression") +
   theme_minimal()
 ```
+
+
+submission2 continue:
+```{r}
+library(ggplot2) #import funtion
+#generate gene plot
+make_gene_plot <- function(df, gene, xvar, cat1, cat2) {
+  df <- na.omit(df[, c(gene, cat1, cat2)])  #ignoring the warning of NA value
+  ggplot(df, aes_string(x = cat1, y = gene, fill = cat2)) +
+    geom_boxplot() +
+    labs(
+      title = paste(gene, "Expression by", cat1, "and", cat2),
+      x = cat1,
+      y = paste(gene, "Expression"),
+      fill = cat2
+    ) +
+    theme_minimal()
+}
+make_gene_plot(full_data, "AAK1", "ferritin", "sex", "icu_status")
+```
+Use for loop to generate 3 different gene plots
+```{r} 
+genes <- c("AAK1", "AAR2", "ABCC1")
+
+make_gene_plot <- function(df, gene, xvar, cat1, cat2) {
+  df <- na.omit(df[, c(gene, cat1, cat2)])
+  ggplot(df, aes_string(x = cat1, y = gene, fill = cat2)) +
+    geom_boxplot() +
+    labs(
+      title = paste(gene, "Expression by", cat1, "and", cat2),
+      x = cat1,
+      y = paste(gene, "Expression"),
+      fill = cat2
+    ) +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.7))
+}
+
+for (g in genes) {
+  print(make_gene_plot(full_data, g, "ferritin.ng.ml.", "sex", "icu_status"))
+}
+```
+Saving plots
+```{r} 
+for (g in genes) {
+  p <- make_gene_plot(full_data, g, "ferritin.ng.ml.", "sex", "icu_status")
+  ggsave(filename = paste0(g, "_boxplot.png"), plot = p, width = 6, height = 4)
+}
+```
+AAK1 Boxplot
+![](AAK1_boxplot.png)
+
+AAR2 Boxplot
+![](AAR2_boxplot.png)
+
+ABCC1 Boxplot
+![](ABCC1_boxplot.png)
+
